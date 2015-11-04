@@ -7,28 +7,21 @@ using System.Management.Automation;
 using Novacode;
 using System.IO;
 using System.Diagnostics;
-using System.Drawing;
-using System.Text.RegularExpressions;
+using System.Reflection;
 
 namespace PSWord
 {
     
 
-    [Cmdlet("Replace", "WordText")]
-    public class ReplaceWordText : PSCmdlet
+    [Cmdlet(VerbsCommon.Add, "WordTable")]
+    class AddWordTable : PSCmdlet
     {
         [Parameter(Position = 0, Mandatory = true)]
         public string FilePath { get; set; }
 
-        [Parameter(Position = 1)]
-        public String ReplacingText { get; set; }
-
-        [Parameter(Position = 2, ValueFromPipeline = true)]
-        public String NewText { get; set; }
+        [Parameter(Position = 1, Mandatory = true, ValueFromPipeline = true)]
+        public Object InputObject { get; set; }
         
-        [Parameter]
-        public SwitchParameter TrackChanges { get; set; }
-
         [Parameter]
         public SwitchParameter Show { get; set; }
         protected override void BeginProcessing()
@@ -50,17 +43,25 @@ namespace PSWord
 
             using (DocX document = DocX.Load(resolvedFile[0]))
             {
-                
-
+                Table docTable = document.InsertTable(1, this.InputObject.GetType().GetProperties().Count());
                 try
                 {
-                    if (this.TrackChanges.IsPresent)
+                    foreach (PropertyInfo prp in this.InputObject.GetType().GetProperties())
                     {
-                        document.ReplaceText(this.ReplacingText, this.NewText, true, RegexOptions.IgnoreCase);
-                    }
-                    else
-                    {
-                        document.ReplaceText(this.ReplacingText, this.NewText, false, RegexOptions.IgnoreCase);
+                        if (prp.CanRead)
+                        {
+                            object value = prp.GetValue(InputObject, null);
+                            string s;
+                            if (value == null)
+                            {
+                                s = "";
+                            }
+                            else
+                            {
+                                s = value.ToString();
+                            }
+                            string name = prp.Name;
+                        }
                     }
 
                     document.Save();
@@ -80,4 +81,4 @@ namespace PSWord
         }
     }
 }
-
+}
