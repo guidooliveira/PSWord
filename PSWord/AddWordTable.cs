@@ -11,19 +11,23 @@ using System.Reflection;
 
 namespace PSWord
 {
-    
+    using System.Data.Odbc;
 
     [Cmdlet(VerbsCommon.Add, "WordTable")]
-    class AddWordTable : PSCmdlet
+    public class AddWordTable : PSCmdlet
     {
         [Parameter(Position = 0, Mandatory = true)]
         public string FilePath { get; set; }
 
         [Parameter(Position = 1, Mandatory = true, ValueFromPipeline = true)]
-        public Object InputObject { get; set; }
-        
+        public Object[] InputObject { get; set; }
+
+        [Parameter]
+        public TableDesign Design { get; set; }
+
         [Parameter]
         public SwitchParameter Show { get; set; }
+
         protected override void BeginProcessing()
         {
             var fullPath = Path.GetFullPath(this.FilePath);
@@ -39,39 +43,49 @@ namespace PSWord
         {
             ProviderInfo providerInfo = null;
             var resolvedFile = this.GetResolvedProviderPathFromPSPath(this.FilePath, out providerInfo);
-            WriteVerbose(String.Format("Loading file {0}", resolvedFile[0]));
-
+           
             using (DocX document = DocX.Load(resolvedFile[0]))
             {
-                Table docTable = document.InsertTable(1, this.InputObject.GetType().GetProperties().Count());
+                var header = this.InputObject[0].GetType().GetProperties().Select(p => p.Name).ToArray();
+                var docTable = document.AddTable(1, header.Count());
+                int contagem = 0;
                 try
                 {
-                    foreach (PropertyInfo prp in this.InputObject.GetType().GetProperties())
+                    if (contagem == 0)
                     {
-                        if (prp.CanRead)
+                        contagem++;
+                       var row = 0;
+                        var Column = 0;
+
+                        foreach (var name in header)
                         {
-                            object value = prp.GetValue(InputObject, null);
-                            string s;
-                            if (value == null)
-                            {
-                                s = "";
-                            }
-                            else
-                            {
-                                s = value.ToString();
-                            }
-                            string name = prp.Name;
+                            WriteObject(name);
+                            docTable.Rows[row].Cells[Column++].Paragraphs[0].Append(name);
                         }
                     }
 
-                    document.Save();
+                    var ColumnIndex = 0;
+                    var newRow = docTable.InsertRow();
+
+                    foreach (var name in header)
+                    {
+                        var appendData = this.InputObject[0].GetType().GetProperty(name).GetValue(this.InputObject[0], null);
+                        
+                        newRow.Cells[ColumnIndex++].Paragraphs[0].Append((string)appendData);
+                    }
                 }
                 catch (Exception exception)
                 {
-                    WriteError(new ErrorRecord(exception, exception.HResult.ToString(), ErrorCategory.WriteError, exception));
+                    //this.WriteError(new ErrorRecord(exception, exception.HResult.ToString(), ErrorCategory.WriteError, exception));
                 }
                 finally
                 {
+                    var paragraph = document.InsertParagraph();
+                    paragraph.InsertTableAfterSelf(docTable);
+                    docTable.Design = this.Design;
+
+                    document.Save();
+
                     if (this.Show.IsPresent)
                     {
                         Process.Start(resolvedFile[0]);
@@ -81,4 +95,4 @@ namespace PSWord
         }
     }
 }
-}
+
