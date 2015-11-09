@@ -28,6 +28,8 @@ namespace PSWord
         [Parameter]
         public SwitchParameter Show { get; set; }
 
+        private int Contagem { get; set; }
+
         protected override void BeginProcessing()
         {
             var fullPath = Path.GetFullPath(this.FilePath);
@@ -37,6 +39,8 @@ namespace PSWord
                 createDoc.Save();
                 createDoc.Dispose();
             }
+
+            this.Contagem = 0;
         }
 
         protected override void ProcessRecord()
@@ -46,21 +50,22 @@ namespace PSWord
            
             using (DocX document = DocX.Load(resolvedFile[0]))
             {
-                var header = this.InputObject[0].GetType().GetProperties().Select(p => p.Name).ToArray();
-                var docTable = document.AddTable(1, header.Count());
-                int contagem = 0;
+                var header = this.InputObject[0].GetType().GetProperties();
+                var docTable = document.AddTable(1, header.Length);
+                
                 try
                 {
-                    if (contagem == 0)
+                    if (this.Contagem == 0)
                     {
-                        contagem++;
-                       var row = 0;
+                        
+                        this.Contagem++;
+                        var row = 0;
                         var Column = 0;
 
                         foreach (var name in header)
                         {
-                            WriteObject(name);
-                            docTable.Rows[row].Cells[Column++].Paragraphs[0].Append(name);
+                            Console.WriteLine(name.Name);
+                            docTable.Rows[row].Cells[Column++].Paragraphs[0].Append(name.Name);
                         }
                     }
 
@@ -69,7 +74,7 @@ namespace PSWord
 
                     foreach (var name in header)
                     {
-                        var appendData = this.InputObject[0].GetType().GetProperty(name).GetValue(this.InputObject[0], null);
+                        var appendData = this.InputObject[0].GetType().GetProperty(name.Name).GetValue(this.InputObject[0], null);
                         
                         newRow.Cells[ColumnIndex++].Paragraphs[0].Append((string)appendData);
                     }
@@ -85,12 +90,17 @@ namespace PSWord
                     docTable.Design = this.Design;
 
                     document.Save();
-
-                    if (this.Show.IsPresent)
-                    {
-                        Process.Start(resolvedFile[0]);
-                    }
                 }
+            }
+        }
+
+        protected override void EndProcessing()
+        {
+            if (this.Show.IsPresent)
+            {
+                ProviderInfo providerInfo = null;
+                var resolvedFile = this.GetResolvedProviderPathFromPSPath(this.FilePath, out providerInfo);
+                Process.Start(resolvedFile[0]);
             }
         }
     }
