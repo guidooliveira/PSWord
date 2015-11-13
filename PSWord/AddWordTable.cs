@@ -11,6 +11,8 @@ using System.Reflection;
 
 namespace PSWord
 {
+    using System.Collections;
+    using System.Collections.ObjectModel;
     using System.Data.Odbc;
 
     [Cmdlet(VerbsCommon.Add, "WordTable")]
@@ -20,7 +22,7 @@ namespace PSWord
         public string FilePath { get; set; }
 
         [Parameter(Position = 1, Mandatory = true, ValueFromPipeline = true)]
-        public Object[] InputObject { get; set; }
+        public PSObject[] InputObject { get; set; }
 
         [Parameter]
         public TableDesign Design { get; set; }
@@ -29,73 +31,75 @@ namespace PSWord
         public SwitchParameter Show { get; set; }
 
         private int Contagem { get; set; }
-
+        private Table documentTable { get; set; }
+        private DocX wordDocument { get; set; }
         protected override void BeginProcessing()
         {
-            var fullPath = Path.GetFullPath(this.FilePath);
-            if (!File.Exists(fullPath))
+            var resolvedPath = this.GetUnresolvedProviderPathFromPSPath(this.FilePath);
+           
+            if (!File.Exists(resolvedPath))
             {
-                var createDoc = DocX.Create(fullPath);
-                createDoc.Save();
-                createDoc.Dispose();
+                this.wordDocument = DocX.Create(resolvedPath);
             }
-
+            else
+            {
+                this.wordDocument = DocX.Load(resolvedPath);
+            }
             this.Contagem = 0;
         }
 
         protected override void ProcessRecord()
         {
-            ProviderInfo providerInfo = null;
-            var resolvedFile = this.GetResolvedProviderPathFromPSPath(this.FilePath, out providerInfo);
            
-            using (DocX document = DocX.Load(resolvedFile[0]))
+            var header = this.InputObject[0].Properties;
+            
+            try
             {
-                var header = this.InputObject[0].GetType().GetProperties();
-                var docTable = document.AddTable(1, header.Length);
-                
-                try
+                if (this.Contagem == 0)
                 {
-                    if (this.Contagem == 0)
-                    {
-                        
-                        this.Contagem++;
-                        var row = 0;
-                        var Column = 0;
+                    this.documentTable = this.wordDocument.InsertTable(1, header.Count());
+                    this.documentTable.Design = this.Design;
 
-                        foreach (var name in header)
-                        {
-                            Console.WriteLine(name.Name);
-                            docTable.Rows[row].Cells[Column++].Paragraphs[0].Append(name.Name);
-                        }
-                    }
-
-                    var ColumnIndex = 0;
-                    var newRow = docTable.InsertRow();
-
+                    this.Contagem++;
+                    var Column = 0;
+                    var row = 0;
                     foreach (var name in header)
                     {
-                        var appendData = this.InputObject[0].GetType().GetProperty(name.Name).GetValue(this.InputObject[0], null);
-                        
-                        newRow.Cells[ColumnIndex++].Paragraphs[0].Append((string)appendData);
+                        documentTable.Rows[row].Cells[Column].Paragraphs[0].Append(name.Name);
+                        Column++;
                     }
                 }
-                catch (Exception exception)
-                {
-                    //this.WriteError(new ErrorRecord(exception, exception.HResult.ToString(), ErrorCategory.WriteError, exception));
-                }
-                finally
-                {
-                    var paragraph = document.InsertParagraph();
-                    paragraph.InsertTableAfterSelf(docTable);
-                    docTable.Design = this.Design;
+                    
+                var ColumnIndex = 0;
+                Row newRow = documentTable.InsertRow();
 
-                    document.Save();
+                foreach (var name in header)
+                {
+                    string appendData = this.InputObject[0].Properties[name.Name].Value.ToString();
+                        
+                    newRow.Cells[ColumnIndex++].Paragraphs[0].Append(appendData);
+                    documentTable.Rows.Add(newRow);
                 }
+            }
+            catch (Exception exception)
+            {
+                //this.WriteError(new ErrorRecord(exception, exception.HResult.ToString(), ErrorCategory.WriteError, exception));
             }
         }
 
         protected override void EndProcessing()
         {
+            try
+            {
+                using (this.wordDocument)
+                {
+                    this.wordDocument.Save();
+                }
+            }
+            catch (Exception exception)
+            {
+                this.WriteError(new ErrorRecord(exception, exception.HResult.ToString(), ErrorCategory.WriteError, exception));
+            }
             if (this.Show.IsPresent)
             {
                 ProviderInfo providerInfo = null;
@@ -105,4 +109,3 @@ namespace PSWord
         }
     }
 }
-
