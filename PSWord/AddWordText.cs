@@ -42,10 +42,10 @@ namespace PSWord
 
         protected override void BeginProcessing()
         {
-            var fullPath = Path.GetFullPath(this.FilePath);
-            if (!File.Exists(fullPath))
+            var resolvedFile = this.GetUnresolvedProviderPathFromPSPath(this.FilePath);
+            if (!File.Exists(resolvedFile))
             {
-                var createDoc = DocX.Create(fullPath);
+                var createDoc = DocX.Create(resolvedFile);
                 createDoc.Save();
                 createDoc.Dispose();
             }
@@ -54,10 +54,10 @@ namespace PSWord
         protected override void ProcessRecord()
         {
             ProviderInfo providerInfo = null;
-            var resolvedFile = this.GetResolvedProviderPathFromPSPath(this.FilePath, out providerInfo);
+            var resolvedFile = this.GetUnresolvedProviderPathFromPSPath(this.FilePath);
             WriteVerbose(String.Format("Loading file {0}",resolvedFile[0]));
 
-            using (DocX document = DocX.Load(resolvedFile[0]))
+            using (DocX document = DocX.Load(resolvedFile))
             {
                 var formatting = new Formatting
                                      {
