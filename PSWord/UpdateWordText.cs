@@ -14,8 +14,8 @@ namespace PSWord
 {
     
 
-    [Cmdlet("Replace", "WordText")]
-    public class ReplaceWordText : PSCmdlet
+    [Cmdlet(VerbsData.Update, "WordText")]
+    public class UpdateWordText : PSCmdlet
     {
         [Parameter(Position = 0, Mandatory = true)]
         public string FilePath { get; set; }
