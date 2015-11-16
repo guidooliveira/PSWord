@@ -92,7 +92,7 @@ namespace PSWord
                 {
                     if (this.Show.IsPresent)
                     {
-                        Process.Start(resolvedFile[0]);
+                        Process.Start(resolvedFile);
                     }
                 }
             }
