@@ -65,6 +65,7 @@
     <None Include="PSWord.psd1">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="en-US\PSWord.dll-Help.xml">
