@@ -3,7 +3,7 @@ PSWord
 
 Powershell module for creation and manipulation of Docx files without needing Microsoft Office Installed. This module will enable you to automate project documentations into word Directly.
 
-
+[![Build status](https://ci.appveyor.com/api/projects/status/vuacqoejrkw534v8?svg=true)](https://ci.appveyor.com/project/guidooliveira/psword)
 
 Usage
 -----
