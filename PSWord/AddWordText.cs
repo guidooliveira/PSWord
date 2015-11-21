@@ -12,6 +12,8 @@ using System.Drawing;
 
 namespace PSWord
 {
+    using System.Runtime.CompilerServices;
+
     [Cmdlet(VerbsCommon.Add, "WordText")]
     public class AddWordText : PSCmdlet
     {
@@ -40,61 +42,79 @@ namespace PSWord
         [Parameter]
         public KnownColor FontColor { get; set; }
 
+        private DocX wordDocument { get; set; }
+        private string resolvedPath { get; set; }
         protected override void BeginProcessing()
         {
-            var resolvedFile = this.GetUnresolvedProviderPathFromPSPath(this.FilePath);
-            if (!File.Exists(resolvedFile))
+            this.resolvedPath = this.GetUnresolvedProviderPathFromPSPath(this.FilePath);
+
+            if (!File.Exists(this.resolvedPath))
             {
-                var createDoc = DocX.Create(resolvedFile);
-                createDoc.Save();
-                createDoc.Dispose();
+                this.wordDocument = DocX.Create(this.resolvedPath);
+            }
+            else
+            {
+                this.wordDocument = DocX.Load(this.resolvedPath);
             }
         }
 
         protected override void ProcessRecord()
         {
-            ProviderInfo providerInfo = null;
-            var resolvedFile = this.GetUnresolvedProviderPathFromPSPath(this.FilePath);
-            WriteVerbose(String.Format("Loading file {0}",resolvedFile[0]));
-
-            using (DocX document = DocX.Load(resolvedFile))
+            var formatting = new Formatting
             {
-                var formatting = new Formatting
-                                     {
-                                        FontFamily = this.FontFamily,
-                                        Size = this.Size
-                                     };
+                FontFamily = this.FontFamily,
+                Size = this.Size
+            };
+
+            
+
+            if (this.Bold.IsPresent)
+            {
+                formatting.Bold = true;
+            }
+            if (this.Italic.IsPresent)
+            {
+                formatting.Italic = true;
+            }
+
+            formatting.FontColor = Color.FromKnownColor(this.FontColor);
 
 
-                if (this.Bold.IsPresent)
+            if (this.Text.Length > 0)
+            {
+                for (int i = 0; i < this.Text.Length; i++)
                 {
-                    formatting.Bold = true;
+                    Paragraph p = this.wordDocument.InsertParagraph(this.Text[i], false, formatting);
                 }
-                if (this.Italic.IsPresent)
-                {
-                    formatting.Italic = true;
-                }
-                formatting.FontColor = Color.FromKnownColor(this.FontColor);
-                
+            }
+            else
+            {
                 try
                 {
-                    foreach (var word in Text)
-                    {
-                        Paragraph p = document.InsertParagraph(word, false, formatting);
-                    }
-                        
-                    document.Save();
+                    Paragraph p = this.wordDocument.InsertParagraph(this.Text[0], false, formatting);
                 }
-                catch
+                catch (Exception exception)
                 {
+                    this.WriteError(new ErrorRecord(exception, exception.HResult.ToString(), ErrorCategory.WriteError, exception));
                 }
-                finally
+            }
+        }
+        protected override void EndProcessing()
+        {
+            try
+            {
+                using (this.wordDocument)
                 {
-                    if (this.Show.IsPresent)
-                    {
-                        Process.Start(resolvedFile);
-                    }
+                    this.wordDocument.Save();
                 }
+            }
+            catch (Exception exception)
+            {
+                this.WriteError(new ErrorRecord(exception, exception.HResult.ToString(), ErrorCategory.WriteError, exception));
+            }
+            if (this.Show.IsPresent)
+            {
+                Process.Start(this.resolvedPath);
             }
         }
     }

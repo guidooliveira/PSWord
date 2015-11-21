@@ -31,51 +31,60 @@ namespace PSWord
 
         [Parameter]
         public SwitchParameter Show { get; set; }
+
+        private DocX wordDocument { get; set; }
+        private string resolvedPath { get; set; }
+
         protected override void BeginProcessing()
         {
-            var fullPath = Path.GetFullPath(this.FilePath);
-            if (!File.Exists(fullPath))
+            this.resolvedPath = this.GetUnresolvedProviderPathFromPSPath(this.FilePath);
+
+            if (!File.Exists(this.resolvedPath))
             {
-                var createDoc = DocX.Create(fullPath);
-                createDoc.Save();
-                createDoc.Dispose();
+                this.wordDocument = DocX.Create(this.resolvedPath);
+            }
+            else
+            {
+                this.wordDocument = DocX.Load(this.resolvedPath);
             }
         }
 
         protected override void ProcessRecord()
         {
-            ProviderInfo providerInfo = null;
-            var resolvedFile = this.GetResolvedProviderPathFromPSPath(this.FilePath, out providerInfo);
-            WriteVerbose(String.Format("Loading file {0}", resolvedFile[0]));
-
-            using (DocX document = DocX.Load(resolvedFile[0]))
+            try
             {
-                
+                if (this.TrackChanges.IsPresent)
+                {
+                    this.wordDocument.ReplaceText(this.ReplacingText, this.NewText, true, RegexOptions.IgnoreCase);
+                }
+                else
+                {
+                    this.wordDocument.ReplaceText(this.ReplacingText, this.NewText, false, RegexOptions.IgnoreCase);
+                }
 
-                try
+                this.wordDocument.Save();
+            }
+            catch (Exception exception)
+            {
+                this.WriteError(new ErrorRecord(exception, exception.HResult.ToString(), ErrorCategory.WriteError, exception));
+            }
+        }
+        protected override void EndProcessing()
+        {
+            try
+            {
+                using (this.wordDocument)
                 {
-                    if (this.TrackChanges.IsPresent)
-                    {
-                        document.ReplaceText(this.ReplacingText, this.NewText, true, RegexOptions.IgnoreCase);
-                    }
-                    else
-                    {
-                        document.ReplaceText(this.ReplacingText, this.NewText, false, RegexOptions.IgnoreCase);
-                    }
-
-                    document.Save();
+                    this.wordDocument.Save();
                 }
-                catch (Exception exception)
-                {
-                    WriteError(new ErrorRecord(exception, exception.HResult.ToString(), ErrorCategory.WriteError, exception));
-                }
-                finally
-                {
-                    if (this.Show.IsPresent)
-                    {
-                        Process.Start(resolvedFile[0]);
-                    }
-                }
+            }
+            catch (Exception exception)
+            {
+                this.WriteError(new ErrorRecord(exception, exception.HResult.ToString(), ErrorCategory.WriteError, exception));
+            }
+            if (this.Show.IsPresent)
+            {
+                Process.Start(this.resolvedPath);
             }
         }
     }

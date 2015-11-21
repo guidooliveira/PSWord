@@ -65,12 +65,12 @@ namespace PSWord
             try
             {
                 
-                ProviderInfo providerInfo = null;
-                var PictureFilePath = GetResolvedProviderPathFromPSPath(this.PicturePath, out providerInfo);
+                
+                var PictureFilePath = this.GetUnresolvedProviderPathFromPSPath(this.PicturePath);
 
 
-                WriteVerbose(String.Format(@"Appending {0} to the Word Document...", PictureFilePath[0]));
-                Image documentPicture = this.wordDocument.AddImage(PictureFilePath[0]);
+                WriteVerbose(String.Format(@"Appending {0} to the Word Document...", PictureFilePath));
+                Image documentPicture = this.wordDocument.AddImage(PictureFilePath);
 
                 Picture picture = documentPicture.CreatePicture();
 
@@ -89,16 +89,16 @@ namespace PSWord
                 //if (String.IsNullOrEmpty(this.PreContent))
                 //{
                 //    this.paragraph = this.wordDocument.InsertParagraph("", false);
-                //    this.paragraph.InsertPicture(picture, 0);
+
                 //}
                 //else
                 //{
-                //    Paragraph preParagraph = this.wordDocument.InsertParagraph(this.PreContent, false);
-                //    this.paragraph = this.wordDocument.InsertParagraph(this.PreContent, false);
-                //}
 
-                
-                
+                //   
+                //}
+                this.paragraph.InsertPicture(picture, 0);
+
+
             }
             catch (Exception exception)
             {
