@@ -40,11 +40,11 @@ namespace PSWord
         //[Parameter]
         //public string PreContent { get; set; }
 
-        [Parameter]
-        public int PictureHeight { get; set; }
+        //[Parameter]
+        //public int PictureHeight { get; set; }
 
-        [Parameter]
-        public int PictureWidth { get; set; }
+        //[Parameter]
+        //public int PictureWidth { get; set; }
 
         [Parameter]
         public SwitchParameter Show { get; set; }
@@ -52,18 +52,19 @@ namespace PSWord
         //private Image documentPicture { get; set; }
         private DocX wordDocument { get; set; }
         private Paragraph paragraph { get; set; }
-        private string PictureFilePath { get; set; }
+        
+        private string resolvedPath { get; set; }
         protected override void BeginProcessing()
         {
-            var resolvedPath = this.GetUnresolvedProviderPathFromPSPath(this.FilePath);
+            this.resolvedPath = this.GetUnresolvedProviderPathFromPSPath(this.FilePath);
 
-            if (!File.Exists(resolvedPath))
+            if (!File.Exists(this.resolvedPath))
             {
-                this.wordDocument = DocX.Create(resolvedPath);
+                this.wordDocument = DocX.Create(this.resolvedPath);
             }
             else
             {
-                this.wordDocument = DocX.Load(resolvedPath);
+                this.wordDocument = DocX.Load(this.resolvedPath);
             }
         }
 
@@ -72,14 +73,14 @@ namespace PSWord
             
             try
             {
+                ProviderInfo propertyInfo = null;
+                var pictureFilePath = this.GetResolvedProviderPathFromPSPath(this.PicturePath, out propertyInfo);
 
-                this.PictureFilePath = this.GetUnresolvedProviderPathFromPSPath(this.PicturePath);
-
-                WriteVerbose(String.Format(@"Appending {0} to the Word Document...", PictureFilePath));
+                this.WriteVerbose(String.Format(@"Appending {0} to the Word Document...", pictureFilePath[0]));
 
                 using (MemoryStream ms = new MemoryStream())
                 {
-                    System.Drawing.Image myImg = System.Drawing.Image.FromFile(PictureFilePath);
+                    System.Drawing.Image myImg = System.Drawing.Image.FromFile(pictureFilePath[0]);
 
                     myImg.Save(ms, myImg.RawFormat);  // Save your picture in a memory stream.
                     ms.Seek(0, SeekOrigin.Begin);
@@ -89,22 +90,22 @@ namespace PSWord
                     this.paragraph = this.wordDocument.InsertParagraph("", false);
 
                     Picture picture = image.CreatePicture();     // Create picture.
-                    if (!String.IsNullOrEmpty(this.PictureHeight.ToString()))
-                    {
-                        picture.Height = this.PictureHeight;
-                    }
-                    else
-                    {
-                        picture.Height = myImg.Height;
-                    }
-                    if (String.IsNullOrEmpty(this.PictureWidth.ToString()))
-                    {
-                        picture.Width = this.PictureWidth;
-                    }
-                    else
-                    {
-                        picture.Width = myImg.Width;
-                    }
+                    //if (!String.IsNullOrEmpty(this.PictureHeight.ToString()))
+                    //{
+                    //    picture.Height = this.PictureHeight;
+                    //}
+                    //else
+                    //{
+                    //    picture.Height = myImg.Height;
+                    //}
+                    //if (String.IsNullOrEmpty(this.PictureWidth.ToString()))
+                    //{
+                    //    picture.Width = this.PictureWidth;
+                    //}
+                    //else
+                    //{
+                    //    picture.Width = myImg.Width;
+                    //}
                     if(!String.IsNullOrEmpty(this.PictureShape.ToString()))
                     {
                         picture.SetPictureShape(this.PictureShape); // Set picture shape (if needed)
@@ -136,9 +137,7 @@ namespace PSWord
             }
             if (this.Show.IsPresent)
             {
-                ProviderInfo providerInfo = null;
-                var resolvedFile = this.GetResolvedProviderPathFromPSPath(this.FilePath, out providerInfo);
-                Process.Start(resolvedFile[0]);
+                Process.Start(this.resolvedPath);
             }
         }
     }
