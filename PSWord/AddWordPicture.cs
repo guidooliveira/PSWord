@@ -8,12 +8,16 @@ using Novacode;
 using System.IO;
 using System.Diagnostics;
 using System.Reflection;
+using System.Drawing;
 
 namespace PSWord
 {
     using System.Collections;
     using System.Collections.ObjectModel;
     using System.Data.Odbc;
+    using System.Runtime.CompilerServices;
+
+    using Image = System.Drawing.Image;
 
     [Cmdlet(VerbsCommon.Add, "WordPicture")]
     public class AddWordPicture : PSCmdlet
@@ -22,7 +26,11 @@ namespace PSWord
         [ValidateNotNullOrEmpty]
         public string FilePath { get; set; }
 
-        [Parameter(Position = 1, Mandatory = true, ValueFromPipeline = true)]
+        [Parameter]
+        [ValidateNotNullOrEmpty]
+        public BasicShapes PictureShape { get; set; }
+
+        [Parameter]
         [ValidateNotNullOrEmpty]
         public string PicturePath { get; set; }
 
@@ -32,22 +40,21 @@ namespace PSWord
         //[Parameter]
         //public string PreContent { get; set; }
 
-        //[Parameter]
-        //public int PictureHeight { get; set; }
+        [Parameter]
+        public int PictureHeight { get; set; }
 
-        //[Parameter]
-        //public int PictureWidtht { get; set; }
+        [Parameter]
+        public int PictureWidth { get; set; }
 
         [Parameter]
         public SwitchParameter Show { get; set; }
 
         //private Image documentPicture { get; set; }
         private DocX wordDocument { get; set; }
-        private int indexCount { get; set; }
         private Paragraph paragraph { get; set; }
+        private string PictureFilePath { get; set; }
         protected override void BeginProcessing()
         {
-            this.indexCount = 0;
             var resolvedPath = this.GetUnresolvedProviderPathFromPSPath(this.FilePath);
 
             if (!File.Exists(resolvedPath))
@@ -62,41 +69,49 @@ namespace PSWord
 
         protected override void ProcessRecord()
         {
+            
             try
             {
-                
-                
-                var PictureFilePath = this.GetUnresolvedProviderPathFromPSPath(this.PicturePath);
 
+                this.PictureFilePath = this.GetUnresolvedProviderPathFromPSPath(this.PicturePath);
 
                 WriteVerbose(String.Format(@"Appending {0} to the Word Document...", PictureFilePath));
-                Image documentPicture = this.wordDocument.AddImage(PictureFilePath);
 
-                Picture picture = documentPicture.CreatePicture();
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    System.Drawing.Image myImg = System.Drawing.Image.FromFile(PictureFilePath);
 
-                // Insert an emptyParagraph into this document.
-                //if (String.IsNullOrEmpty(this.PostContent))
-                //{
-                //    this.paragraph = this.wordDocument.InsertParagraph("", false);
-                //    this.paragraph.InsertPicture(picture, 0);
-                //}
-                //else
-                //{
-                //    this.paragraph = this.wordDocument.InsertParagraph(this.PostContent, false);
-                //    this.paragraph.InsertPicture(picture, 0);
-                //}
+                    myImg.Save(ms, myImg.RawFormat);  // Save your picture in a memory stream.
+                    ms.Seek(0, SeekOrigin.Begin);
 
-                //if (String.IsNullOrEmpty(this.PreContent))
-                //{
-                //    this.paragraph = this.wordDocument.InsertParagraph("", false);
+                    Novacode.Image image = this.wordDocument.AddImage(ms); // Create image.
+                    
+                    this.paragraph = this.wordDocument.InsertParagraph("", false);
 
-                //}
-                //else
-                //{
+                    Picture picture = image.CreatePicture();     // Create picture.
+                    if (!String.IsNullOrEmpty(this.PictureHeight.ToString()))
+                    {
+                        picture.Height = this.PictureHeight;
+                    }
+                    else
+                    {
+                        picture.Height = myImg.Height;
+                    }
+                    if (String.IsNullOrEmpty(this.PictureWidth.ToString()))
+                    {
+                        picture.Width = this.PictureWidth;
+                    }
+                    else
+                    {
+                        picture.Width = myImg.Width;
+                    }
+                    if(!String.IsNullOrEmpty(this.PictureShape.ToString()))
+                    {
+                        picture.SetPictureShape(this.PictureShape); // Set picture shape (if needed)
+                    }
 
-                //   
-                //}
-                this.paragraph.InsertPicture(picture, 0);
+                    this.paragraph.InsertPicture(picture, 0); // Insert picture into paragraph.
+                }
 
 
             }

@@ -11,7 +11,7 @@ namespace PSWord
     using System.Management.Automation;
 
     [Cmdlet(VerbsCommon.New, "WordFormatting")]
-    public class NewWordFormatting : PSCmdlet
+    class NewWordFormatting : PSCmdlet
     {
         [Parameter]
         public CapsStyle CapsStyle { get; set; }
@@ -37,9 +37,8 @@ namespace PSWord
         [Parameter]
         public Misc Misc { get; set; }
 
-        [Parameter]
-        [ValidateLength(1,72)]
-        public int Size { get; set; }
+        [Parameter(Mandatory = true)]
+        public int? Size { get; set; }
 
         [Parameter]
         public double Spacing { get; set; }
@@ -52,11 +51,20 @@ namespace PSWord
 
         [Parameter]
         public KnownColor UnderlineColor { get; set; }
+        private Formatting formatting { get; set; }
+
+        protected override void BeginProcessing()
+        {
+            this.formatting = new Formatting
+                                {
+                                   Size = this.Size
+                                };
+           
+        }
+
         protected override void ProcessRecord()
         {
-            Formatting formatting = new Formatting();
-
-            formatting.CapsStyle = this.CapsStyle;
+            this.formatting.CapsStyle = this.CapsStyle;
             if (this.Bold.IsPresent)
             {
                 formatting.Bold = true;
@@ -79,12 +87,6 @@ namespace PSWord
             {
                 formatting.Misc = this.Misc;
             }
-           
-            if (!String.IsNullOrEmpty(this.Size.ToString()))
-            {
-                formatting.Size = this.Size;
-            }
-            
             if (!String.IsNullOrEmpty(this.Spacing.ToString()))
             {
                 formatting.Spacing = this.Spacing;
