@@ -1,7 +1,7 @@
 configuration: Release
 
 # restore NuGet packages before running MSBuild 
-before build:
+before_build:
  - nuget restore
 
 #package Web Application Project for Web Deploy 
