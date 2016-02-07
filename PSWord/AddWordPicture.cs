@@ -40,11 +40,14 @@ namespace PSWord
         //[Parameter]
         //public string PreContent { get; set; }
 
-        //[Parameter]
-        //public int PictureHeight { get; set; }
+        [Parameter]
+        public int PictureHeight { get; set; }
 
-        //[Parameter]
-        //public int PictureWidth { get; set; }
+        [Parameter]
+        public int PictureWidth { get; set; }
+        [Parameter]
+        [ValidateRange(0,360)]
+        public uint Rotation { get; set; }
 
         [Parameter]
         public SwitchParameter Show { get; set; }
@@ -90,25 +93,30 @@ namespace PSWord
                     this.paragraph = this.wordDocument.InsertParagraph("", false);
 
                     Picture picture = image.CreatePicture();     // Create picture.
-                    //if (!String.IsNullOrEmpty(this.PictureHeight.ToString()))
-                    //{
-                    //    picture.Height = this.PictureHeight;
-                    //}
-                    //else
-                    //{
-                    //    picture.Height = myImg.Height;
-                    //}
-                    //if (String.IsNullOrEmpty(this.PictureWidth.ToString()))
-                    //{
-                    //    picture.Width = this.PictureWidth;
-                    //}
-                    //else
-                    //{
-                    //    picture.Width = myImg.Width;
-                    //}
-                    if(!String.IsNullOrEmpty(this.PictureShape.ToString()))
+                    if (this.PictureHeight > 0)
                     {
-                        picture.SetPictureShape(this.PictureShape); // Set picture shape (if needed)
+                        picture.Height = this.PictureHeight;
+                    }
+                    else
+                    {
+                        picture.Height = myImg.Height;
+                    }
+                    if(this.PictureWidth > 0)
+                    {
+                        picture.Width = this.PictureWidth;
+                    }
+                    else
+                    {
+                        picture.Width = myImg.Width;
+                    }
+                    //if (!String.IsNullOrEmpty(this.PictureShape.ToString()))
+                    //{
+                    //    picture.SetPictureShape(this.PictureShape); // Set picture shape (if needed)
+                    //}
+
+                    if (this.Rotation > 0)
+                    {
+                        picture.Rotation = this.Rotation;
                     }
 
                     this.paragraph.InsertPicture(picture, 0); // Insert picture into paragraph.

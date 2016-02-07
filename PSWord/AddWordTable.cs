@@ -83,7 +83,7 @@ namespace PSWord
             }
             catch (Exception exception)
             {
-                //this.WriteError(new ErrorRecord(exception, exception.HResult.ToString(), ErrorCategory.WriteError, exception));
+                this.WriteError(new ErrorRecord(exception, exception.HResult.ToString(), ErrorCategory.WriteError, exception));
             }
         }
 
