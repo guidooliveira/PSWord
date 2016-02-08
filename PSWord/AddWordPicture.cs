@@ -34,11 +34,11 @@ namespace PSWord
         [ValidateNotNullOrEmpty]
         public string PicturePath { get; set; }
 
-        //[Parameter]
-        //public string PostContent { get; set; }
+        [Parameter]
+        public string PostContent { get; set; }
 
-        //[Parameter]
-        //public string PreContent { get; set; }
+        [Parameter]
+        public string PreContent { get; set; }
 
         [Parameter]
         public int PictureHeight { get; set; }
@@ -46,7 +46,7 @@ namespace PSWord
         [Parameter]
         public int PictureWidth { get; set; }
         [Parameter]
-        [ValidateRange(0,360)]
+        [ValidateRange(-360,360)]
         public uint Rotation { get; set; }
 
         [Parameter]
@@ -55,7 +55,8 @@ namespace PSWord
         //private Image documentPicture { get; set; }
         private DocX wordDocument { get; set; }
         private Paragraph paragraph { get; set; }
-        
+        private Paragraph PreContentparagraph { get; set; }
+        private Paragraph PostContentparagraph { get; set; }
         private string resolvedPath { get; set; }
         protected override void BeginProcessing()
         {
@@ -80,7 +81,10 @@ namespace PSWord
                 var pictureFilePath = this.GetResolvedProviderPathFromPSPath(this.PicturePath, out propertyInfo);
 
                 this.WriteVerbose(String.Format(@"Appending {0} to the Word Document...", pictureFilePath[0]));
-
+                if (!String.IsNullOrEmpty(this.PreContent))
+                {
+                    this.PreContentparagraph = this.wordDocument.InsertParagraph(this.PreContent, false);
+                }
                 using (MemoryStream ms = new MemoryStream())
                 {
                     System.Drawing.Image myImg = System.Drawing.Image.FromFile(pictureFilePath[0]);
@@ -121,7 +125,10 @@ namespace PSWord
 
                     this.paragraph.InsertPicture(picture, 0); // Insert picture into paragraph.
                 }
-
+                if (!String.IsNullOrEmpty(this.PostContent))
+                {
+                    this.PostContentparagraph = this.wordDocument.InsertParagraph(this.PostContent, false);
+                }
 
             }
             catch (Exception exception)

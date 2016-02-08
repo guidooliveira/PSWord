@@ -28,6 +28,12 @@ namespace PSWord
         public TableDesign Design { get; set; }
 
         [Parameter]
+        public string PostContent { get; set; }
+
+        [Parameter]
+        public string PreContent { get; set; }
+
+        [Parameter]
         public SwitchParameter Show { get; set; }
 
         private int Contagem { get; set; }
