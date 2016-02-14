@@ -81,11 +81,28 @@ namespace PSWord
                 var columnIndex = 0;
                 Row newRow = this.DocumentTable.InsertRow();
 
+              
                 foreach (var name in header)
                 {
-                    string appendData = this.InputObject[0].Properties[name.Name].Value.ToString();
-                    newRow.Cells[columnIndex++].Paragraphs[0].Append(appendData);
-                    this.DocumentTable.Rows.Add(newRow);
+                    try
+                    {
+                        int i = 0;
+                        string appendData;
+                        if (this.InputObject.Length < 0)
+                        {
+                            appendData = this.InputObject[i++].Properties[name.Name].Value.ToString();
+                        }
+                        else
+                        {
+                            appendData = this.InputObject[0].Properties[name.Name].Value.ToString();
+                        }
+                        newRow.Cells[columnIndex++].Paragraphs[0].Append(appendData);
+                        this.DocumentTable.Rows.Add(newRow);
+                    }
+                    catch (Exception exception)
+                    {
+                        this.WriteError(new ErrorRecord(exception, exception.HResult.ToString(), ErrorCategory.WriteError, exception));
+                    }
                 }
             }
             catch (Exception exception)
