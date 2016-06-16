@@ -1,19 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Management.Automation;
 using Novacode;
 using System.IO;
 using System.Diagnostics;
-using System.Reflection;
+
 
 namespace PSWord
 {
-    using System.Collections;
-    using System.Collections.ObjectModel;
-    using System.Data.Odbc;
 
     [Cmdlet(VerbsCommon.Add, "WordTable")]
     public class AddWordTable : PSCmdlet
@@ -25,27 +19,41 @@ namespace PSWord
         public PSObject[] InputObject { get; set; }
 
         [Parameter]
-        public TableDesign Design { get; set; }
+        public TableDesign Design { get; set; } = TableDesign.TableNormal;
+
+        [Parameter]
+        public string PostContent { get; set; }
+
+        [Parameter]
+        public string PreContent { get; set; }
 
         [Parameter]
         public SwitchParameter Show { get; set; }
 
-        private int Contagem { get; set; }
-        private Table documentTable { get; set; }
-        private DocX wordDocument { get; set; }
+        private int Count { get; set; }
+        private Table DocumentTable { get; set; }
+        private DocX WordDocument { get; set; }
+        private Paragraph PreContentparagraph { get; set; }
+        private Paragraph PostContentparagraph { get; set; }
+        private string ResolvedPath { get; set; }
         protected override void BeginProcessing()
         {
-            var resolvedPath = this.GetUnresolvedProviderPathFromPSPath(this.FilePath);
+            this.ResolvedPath = this.GetUnresolvedProviderPathFromPSPath(this.FilePath);
            
-            if (!File.Exists(resolvedPath))
+            if (!File.Exists(this.ResolvedPath))
             {
-                this.wordDocument = DocX.Create(resolvedPath);
+                this.WordDocument = DocX.Create(this.ResolvedPath);
             }
             else
             {
-                this.wordDocument = DocX.Load(resolvedPath);
+                this.WordDocument = DocX.Load(this.ResolvedPath);
             }
-            this.Contagem = 0;
+            this.Count = 0;
+
+            if (!string.IsNullOrEmpty(this.PreContent))
+            {
+                this.PreContentparagraph = this.WordDocument.InsertParagraph(this.PreContent, false);
+            }
         }
 
         protected override void ProcessRecord()
@@ -55,35 +63,34 @@ namespace PSWord
             
             try
             {
-                if (this.Contagem == 0)
+                if (this.Count == 0)
                 {
-                    this.documentTable = this.wordDocument.InsertTable(1, header.Count());
-                    this.documentTable.Design = this.Design;
-
-                    this.Contagem++;
-                    var Column = 0;
+                    this.DocumentTable = this.WordDocument.InsertTable(1, header.Count());
+                    this.DocumentTable.Design = this.Design;
+                    
+                    var column = 0;
                     var row = 0;
                     foreach (var name in header)
                     {
-                        documentTable.Rows[row].Cells[Column].Paragraphs[0].Append(name.Name);
-                        Column++;
+                        this.DocumentTable.Rows[row].Cells[column].Paragraphs[0].Append(name.Name);
+                        column++;
                     }
+                    this.Count++;
                 }
                     
-                var ColumnIndex = 0;
-                Row newRow = documentTable.InsertRow();
+                var columnIndex = 0;
+                Row newRow = this.DocumentTable.InsertRow();
 
                 foreach (var name in header)
                 {
                     string appendData = this.InputObject[0].Properties[name.Name].Value.ToString();
-                        
-                    newRow.Cells[ColumnIndex++].Paragraphs[0].Append(appendData);
-                    documentTable.Rows.Add(newRow);
+                    newRow.Cells[columnIndex++].Paragraphs[0].Append(appendData);
+                    this.DocumentTable.Rows.Add(newRow);
                 }
             }
             catch (Exception exception)
             {
-                //this.WriteError(new ErrorRecord(exception, exception.HResult.ToString(), ErrorCategory.WriteError, exception));
+                this.WriteError(new ErrorRecord(exception, exception.HResult.ToString(), ErrorCategory.WriteError, exception));
             }
         }
 
@@ -91,9 +98,13 @@ namespace PSWord
         {
             try
             {
-                using (this.wordDocument)
+                if (!string.IsNullOrEmpty(this.PostContent))
                 {
-                    this.wordDocument.Save();
+                    this.PostContentparagraph = this.WordDocument.InsertParagraph(this.PostContent, false);
+                }
+                using (this.WordDocument)
+                {
+                    this.WordDocument.Save();
                 }
             }
             catch (Exception exception)
@@ -102,9 +113,8 @@ namespace PSWord
             }
             if (this.Show.IsPresent)
             {
-                ProviderInfo providerInfo = null;
-                var resolvedFile = this.GetResolvedProviderPathFromPSPath(this.FilePath, out providerInfo);
-                Process.Start(resolvedFile[0]);
+
+                Process.Start(this.ResolvedPath);
             }
         }
     }
