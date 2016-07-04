@@ -32,12 +32,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="DocX, Version=1.0.0.19, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\DocX.1.0.0.19\lib\net40\DocX.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="MadMilkman.Docx, Version=1.0.0.0, Culture=neutral, PublicKeyToken=8f529aa6d97cada3, processorArchitecture=MSIL">
-      <HintPath>packages\MadMilkman.Docx.1.0.0.0\lib\net35\MadMilkman.Docx.dll</HintPath>
-      <Private>True</Private>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>E:\Downloads\DocX.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -56,9 +52,12 @@
   <ItemGroup>
     <Compile Include="AddWordPicture.cs" />
     <Compile Include="AddWordTable.cs" />
+    <Compile Include="AddWordTableofContents.cs" />
     <Compile Include="AddWordText.cs" />
+    <Compile Include="GetWordParagraph.cs" />
     <Compile Include="NewWordFormatting.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ProtectWordDocument.cs" />
     <Compile Include="UpdateWordText.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -73,6 +72,7 @@
     </Content>
     <Content Include="PSWORD.png" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>

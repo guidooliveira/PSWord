@@ -22,6 +22,9 @@ namespace PSWord
         public TableDesign Design { get; set; } = TableDesign.TableNormal;
 
         [Parameter]
+        public AutoFit AutoFitStyle { get; set; } = AutoFit.Contents;
+
+        [Parameter]
         public string PostContent { get; set; }
 
         [Parameter]
@@ -67,6 +70,8 @@ namespace PSWord
                 {
                     this.DocumentTable = this.WordDocument.InsertTable(1, header.Count());
                     this.DocumentTable.Design = this.Design;
+                    this.DocumentTable.AutoFit = this.AutoFitStyle;
+                    
                     
                     var column = 0;
                     var row = 0;
