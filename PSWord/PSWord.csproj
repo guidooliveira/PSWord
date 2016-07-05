@@ -54,6 +54,7 @@
     <Compile Include="AddWordTable.cs" />
     <Compile Include="AddWordTableofContents.cs" />
     <Compile Include="AddWordText.cs" />
+    <Compile Include="GetWordDocument.cs" />
     <Compile Include="GetWordParagraph.cs" />
     <Compile Include="NewWordFormatting.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

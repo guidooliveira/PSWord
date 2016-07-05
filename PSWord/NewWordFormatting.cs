@@ -67,47 +67,47 @@ namespace PSWord
             this.formatting.CapsStyle = this.CapsStyle;
             if (this.Bold.IsPresent)
             {
-                formatting.Bold = true;
+                this.formatting.Bold = true;
             }
             if (this.Italic.IsPresent)
             {
-                formatting.Italic = true;
+                this.formatting.Italic = true;
             }
-            formatting.FontFamily = this.FontFamily;
-            formatting.FontColor = Color.FromKnownColor(this.FontColor);
+            this.formatting.FontFamily = this.FontFamily;
+            this.formatting.FontColor = Color.FromKnownColor(this.FontColor);
             if (this.Hidden.IsPresent)
             {
-                formatting.Hidden = true;
+                this.formatting.Hidden = true;
             }
             if (!string.IsNullOrEmpty(this.Highlight.ToString()))
             {
-                formatting.Highlight = this.Highlight;
+                this.formatting.Highlight = this.Highlight;
             }
             if (!String.IsNullOrEmpty(this.Misc.ToString()))
             {
-                formatting.Misc = this.Misc;
+                this.formatting.Misc = this.Misc;
             }
             if (!String.IsNullOrEmpty(this.Spacing.ToString()))
             {
-                formatting.Spacing = this.Spacing;
+                this.formatting.Spacing = this.Spacing;
             }
             
             if (!String.IsNullOrEmpty(this.StrikeThrough.ToString()))
             {
-                formatting.StrikeThrough = this.StrikeThrough;
+                this.formatting.StrikeThrough = this.StrikeThrough;
             }
            
             if (!String.IsNullOrEmpty(this.UnderlineStyle.ToString()))
             {
-                formatting.UnderlineStyle = this.UnderlineStyle;
+                this.formatting.UnderlineStyle = this.UnderlineStyle;
             }
             
             if (!String.IsNullOrEmpty(this.UnderlineColor.ToString()))
             {
-                formatting.UnderlineColor = Color.FromKnownColor(this.UnderlineColor);
+                this.formatting.UnderlineColor = Color.FromKnownColor(this.UnderlineColor);
             }
             
-            this.WriteObject(formatting);
+            this.WriteObject(this.formatting);
         }
     }
 }
