@@ -9,8 +9,6 @@ using Novacode;
 
 namespace PSWord
 {
-
-
     [Cmdlet(VerbsCommon.Get, "WordDocument")]
     public class GetWordDocument : PSCmdlet
     {
@@ -27,6 +25,7 @@ namespace PSWord
             if (File.Exists(this.resolvedPath))
             {
                 this.wordDocument = DocX.Load(this.resolvedPath);
+                
             }
         }
 

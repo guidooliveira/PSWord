@@ -50,15 +50,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AddWordList.cs" />
     <Compile Include="AddWordPicture.cs" />
     <Compile Include="AddWordTable.cs" />
     <Compile Include="AddWordTableofContents.cs" />
     <Compile Include="AddWordText.cs" />
+    <Compile Include="Enumerators.cs" />
     <Compile Include="GetWordDocument.cs" />
     <Compile Include="GetWordParagraph.cs" />
+    <Compile Include="GetWordTable.cs" />
     <Compile Include="NewWordFormatting.cs" />
+    <Compile Include="NewWordList.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ProtectWordDocument.cs" />
+    <Compile Include="SetWordListItem.cs" />
     <Compile Include="UpdateWordText.cs" />
   </ItemGroup>
   <ItemGroup>

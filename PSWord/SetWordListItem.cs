@@ -10,20 +10,21 @@ using System.Diagnostics;
 
 namespace PSWord
 {
-    [Cmdlet(VerbsSecurity.Protect, "WordDocument")]
-    public class ProtectWordDocument : PSCmdlet
+    [Cmdlet(VerbsCommon.Set, "WordListItem")]
+    public class SetWordListItem : PSCmdlet
     {
         [Parameter]
         public string FilePath { get; set; }
 
         [Parameter]
-        public EditRestrictions EditRestrictions { get; set; }
+        public Novacode.List List { get; set; }
 
         [Parameter]
-        public string DocumentPassword { get; set; }
+        public string Text { get; set; }
 
         [Parameter]
-        public SwitchParameter Show { get; set; }
+        public int? ParentIndex { get; set; }
+
         private string resolvedPath { get; set; }
         private DocX wordDocument { get; set; }
         protected override void BeginProcessing()
@@ -36,25 +37,17 @@ namespace PSWord
         }
         protected override void ProcessRecord()
         {
-            this.wordDocument.AddProtection(this.EditRestrictions, this.DocumentPassword);
+            if (this.ParentIndex == null)
+            {
+                this.wordDocument.AddListItem(this.List,this.Text);
+            }
+            else
+            {
+                this.wordDocument.AddListItem(this.List, this.Text, (int)this.ParentIndex);
+            }
+
+            this.WriteObject(this.List);
         }
-        protected override void EndProcessing()
-        {
-            try
-            {
-                using (this.wordDocument)
-                {
-                    this.wordDocument.SaveAs(this.resolvedPath);
-                }
-            }
-            catch (Exception exception)
-            {
-                this.WriteError(new ErrorRecord(exception, exception.HResult.ToString(), ErrorCategory.WriteError, exception));
-            }
-            if (this.Show.IsPresent)
-            {
-                Process.Start(this.resolvedPath);
-            }
-        }
+      
     }
 }

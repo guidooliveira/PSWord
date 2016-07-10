@@ -17,33 +17,35 @@ namespace PSWord
     [Cmdlet(VerbsCommon.Add, "WordText", DefaultParameterSetName = "Default")]
     public class AddWordText : PSCmdlet
     {
-        [Parameter(Position = 0, Mandatory =true)]
+        [Parameter(Position = 0, Mandatory =true, ParameterSetName = "Default")]
+        [Parameter(Position = 0, Mandatory = true, ParameterSetName = "Heading")]
         public string FilePath { get; set; }
         
-        [Parameter(Position = 1, ValueFromPipeline =true)]
+        [Parameter(Position = 1, ValueFromPipeline =true, ParameterSetName = "Heading")]
+        [Parameter(Position = 1, ValueFromPipeline = true, ParameterSetName = "Default")]
         public String[] Text { get; set; }
         
-        [Parameter(HelpMessage = "Please choose a font size between 4 and 72")]
+        [Parameter(HelpMessage = "Please choose a font size between 4 and 72", ParameterSetName = "Default")]
         [ValidateRange(4, 72)]
         public Int32 Size { get; set; }
 
-        [Parameter]
+        [Parameter(ParameterSetName = "Default")]
         public SwitchParameter Bold { get; set; }
 
-        [Parameter]
+        [Parameter(ParameterSetName = "Default")]
         public SwitchParameter Italic { get; set; }
 
         [Parameter]
         public SwitchParameter Show { get; set; }
 
-        [Parameter]
+        [Parameter(ParameterSetName = "Default")]
         public FontFamily FontFamily { get; set; }
 
-        [Parameter]
+        [Parameter(ParameterSetName = "Default")]
         public KnownColor FontColor { get; set; }
 
         [Parameter(ParameterSetName = "Heading")]
-        public HeadingType Heading { get; set; }
+        public PSWord.HeadingType Heading { get; set; }
 
         [Parameter]
         public SwitchParameter NoNewLine { get; set;}

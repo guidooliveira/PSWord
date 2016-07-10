@@ -10,17 +10,14 @@ using System.Diagnostics;
 
 namespace PSWord
 {
-    [Cmdlet(VerbsSecurity.Protect, "WordDocument")]
-    public class ProtectWordDocument : PSCmdlet
+    [Cmdlet(VerbsCommon.Add, "WordList")]
+    public class AddWordList : PSCmdlet
     {
         [Parameter]
         public string FilePath { get; set; }
 
         [Parameter]
-        public EditRestrictions EditRestrictions { get; set; }
-
-        [Parameter]
-        public string DocumentPassword { get; set; }
+        public Novacode.List List { get; set; }
 
         [Parameter]
         public SwitchParameter Show { get; set; }
@@ -36,8 +33,9 @@ namespace PSWord
         }
         protected override void ProcessRecord()
         {
-            this.wordDocument.AddProtection(this.EditRestrictions, this.DocumentPassword);
+            this.wordDocument.InsertList(this.List);
         }
+
         protected override void EndProcessing()
         {
             try

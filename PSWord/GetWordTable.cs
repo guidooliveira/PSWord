@@ -10,8 +10,10 @@ using System.Diagnostics;
 
 namespace PSWord
 {
-    [Cmdlet(VerbsSecurity.Protect, "WordDocument")]
-    public class ProtectWordDocument : PSCmdlet
+
+
+    [Cmdlet(VerbsCommon.Get, "WordTable")]
+    public class GetWordTable : PSCmdlet
     {
         [Parameter]
         public string FilePath { get; set; }
@@ -36,7 +38,7 @@ namespace PSWord
         }
         protected override void ProcessRecord()
         {
-            this.wordDocument.AddProtection(this.EditRestrictions, this.DocumentPassword);
+
         }
         protected override void EndProcessing()
         {
@@ -53,6 +55,7 @@ namespace PSWord
             }
             if (this.Show.IsPresent)
             {
+
                 Process.Start(this.resolvedPath);
             }
         }
